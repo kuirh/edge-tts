@@ -123,3 +123,87 @@ class SubMaker:
                 sub_state_start = -1
                 sub_state_subs = ""
         return data
+
+
+    def generate_subs_based_on_punc(self, text,) -> str:
+        """
+        generate_subs generates the complete subtitle file according to the punctuation.
+
+        Returns:
+            str: The complete subtitle file.
+        """
+
+
+
+        PUNCTUATION = ['，', '。', '！', '？', '；', '：', '\n', '“', '”', ',', '!', '.', ';', '?', ',', '؟', '،', '؛', '.',
+                       '!', ':']
+        punctuation_set = set(re.escape(punc) for punc in PUNCTUATION)
+        BREAK = ['\n', '。', '！', '？', '.', '?', '!', '؟']
+        break_set = set(re.escape(punc) for punc in BREAK)
+
+        def remove_punctuations_and_lower(text):
+            for punc in punctuation_set:
+                text = re.sub(punc, '', text)
+            return text.lower()
+
+        def clause(self) -> list[str]:
+
+            words = text.split()
+            result = []
+            current_sentence = ""
+
+            for word in words:
+                # Check if the word is a punctuation
+                if re.search(f"[{''.join(break_set)}]$", word):
+                    current_sentence += word + " "
+                    result.append(current_sentence.rstrip())
+                    current_sentence = ""
+                elif re.search(f"[{''.join(punctuation_set)}]$", word):
+                    if len(current_sentence) > 20 and len(current_sentence) + len(word) + 1 <= 60:  # 最小句子长度20，有标点时立即停止
+                        current_sentence += word + " "
+                        result.append(current_sentence.rstrip())
+                        current_sentence = ""
+                    else:
+                        current_sentence += word + " "
+                else:
+                    # Add word to current sentence if it keeps the length within the limit
+                    if len(current_sentence) + len(word) + 1 <= 50:  # 无标点的句子的最大长度50
+                        current_sentence += word + " "
+                    else:
+                        # If adding the word exceeds the limit, append the current sentence and start a new one
+                        result.append(current_sentence.rstrip())
+                        current_sentence = word + " "
+
+            # Append the last sentence if it's not empty and within the length limit
+            if current_sentence:
+                result.append(current_sentence.rstrip())
+
+            return result
+
+        self.text_list = clause(self)
+        if len(self.subs) != len(self.offset):
+            raise ValueError("subs and offset are not of the same length")
+        print(self.subs)
+        print(self.offset)
+        data = "WEBVTT\r\n\r\n"
+        j = 0
+        for text in self.text_list:
+            print("text", text)
+            t = remove_punctuations_and_lower(text)
+            try:
+                start_time = self.offset[j][0]
+            except IndexError:
+                return data
+
+            t = t.replace(remove_punctuations_and_lower(self.subs[j]), '', 1)
+
+            try:
+                while (remove_punctuations_and_lower(self.subs[j + 1]) in t):
+                    t = t.replace(remove_punctuations_and_lower(self.subs[j + 1]), '', 1)
+                    j += 1
+            except IndexError:
+                pass
+            data += formatter(start_time, self.offset[j][1], text)
+            j += 1
+        return data
+
