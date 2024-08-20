@@ -1,6 +1,8 @@
 # edge-tts
 
 `edge-tts` is a Python module that allows you to use Microsoft Edge's online text-to-speech service from within your Python code or using the provided `edge-tts` or `edge-playback` command.
+## Fork
+This Fork is an optimization for the subtitles of Edge-TTS. We add punctuation marks in the subtitle and make the sentence breaks more natural.The usage can be found in the file "example/streaming_with_subtitles.py"
 
 ## Installation
 
